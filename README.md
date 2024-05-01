@@ -1,2 +1,2 @@
-# Wragaem
-A turn-based strategy game
+# Typetrain
+A typing game
