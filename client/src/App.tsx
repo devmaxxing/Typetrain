@@ -156,10 +156,6 @@ I will be afflicted that I do not know men."
   };
 
   useEffect(() => {
-    console.log(scores);
-  }, [scores]);
-
-  useEffect(() => {
     audio.play();
     const setup = async () => {
       await discordSdk.ready();

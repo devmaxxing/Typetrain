@@ -23,6 +23,8 @@ const TypingInput = React.forwardRef<HTMLInputElement, TypingInputProps>(
     const [isFocused, setIsFocused] = useState(() => true);
     const [score, setScore] = useState(() => 0);
     const [baseScore, setBaseScore] = useState(() => 0);
+    const [lastBroadcastTime, setLastBroadcastTime] = useState(() => 0);
+    const [needsBroadcast, setNeedsBroadcast] = useState(() => false);
     const letterElements = useRef<HTMLDivElement>(null);
 
     // const { user } = useProfile();
@@ -83,22 +85,31 @@ const TypingInput = React.forwardRef<HTMLInputElement, TypingInputProps>(
       setIsFocused(true);
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [text]);
-    let commsLoop: number | undefined;
+
     useEffect(() => {
-      if (commsLoop) clearInterval(commsLoop);
-      commsLoop = setInterval(() => {
-        if (socket) {
-          if (startTime && phase !== PhaseType.Ended) {
-            socket.send(
-              `${id} ${score} ${
-                (12000 * correctChar) / (Date.now() - startTime)
-              }`
-            );
-          } else {
-            socket.send(`${id} ${score} 0`);
-          }
+      if (
+        socket &&
+        socket.readyState === WebSocket.OPEN &&
+        Date.now() - lastBroadcastTime >= 1000
+      ) {
+        if (startTime && phase !== PhaseType.Ended) {
+          socket.send(
+            `${id} ${score} ${(12000 * correctChar) / (Date.now() - startTime)}`
+          );
+        } else {
+          socket.send(`${id} ${score} 0`);
         }
-      }, 1000);
+        setLastBroadcastTime(Date.now());
+        setNeedsBroadcast(false);
+      }
+    }, [score, needsBroadcast]);
+
+    // trigger score broadcast every 3s
+    useEffect(() => {
+      const commsLoop = setInterval(() => {
+        setNeedsBroadcast(true);
+      }, 3000);
+      return () => clearInterval(commsLoop);
     }, []);
 
     //set WPM
@@ -140,7 +151,6 @@ const TypingInput = React.forwardRef<HTMLInputElement, TypingInputProps>(
         insertTyping(letter);
       }
       if (startTime && phase !== PhaseType.Ended) {
-        console.log(baseScore + correctChar);
         setScore(baseScore + correctChar);
       }
     };
