@@ -115,7 +115,7 @@ I will be afflicted that I do not know men."
     .map((p) => p.replaceAll("\n", " ").trim());
   const [auth, setAuth] = useState<null | Auth>(null);
   const [websocket, setWebsocket] = useState<null | WebSocket>(null);
-  const [scores, setScores] = useState<null | Record<string, number>>(null);
+  const [scores, setScores] = useState<Record<string, [number, number]>>({});
   const [paragraphIndex, setParagraphIndex] = useState<number>(0);
   const [text, setText] = useState<string>(paragraphs[0]);
   const [language, setLanguage] = useState<string>("EN");
@@ -154,6 +154,10 @@ I will be afflicted that I do not know men."
     UK: "Українська",
     ZH: "中文",
   };
+
+  useEffect(() => {
+    console.log(scores);
+  }, [scores]);
 
   useEffect(() => {
     audio.play();
@@ -212,6 +216,7 @@ I will be afflicted that I do not know men."
       }
       setAuth(auth);
       const instanceId = discordSdk.instanceId;
+      setScores({ [auth.user.id]: [0, 0] });
       const ws = new WebSocket(
         `wss://${
           import.meta.env.VITE_CLIENT_ID
@@ -220,11 +225,18 @@ I will be afflicted that I do not know men."
         }`
       );
       ws.onmessage = (event) => {
-        console.log(`event: ${JSON.stringify(event.data)}`);
+        const data = event.data.split("\n");
+        const newScores: Record<string, [number, number]> = {};
+        for (const entry of data) {
+          if (entry !== "") {
+            const [userId, score, wpm] = entry.split(" ");
+            newScores[userId] = [parseInt(score), parseFloat(wpm)];
+          }
+        }
+        setScores((prev) => ({ ...prev, ...newScores }));
       };
       ws.onopen = () => {
-        console.log("ws opened. sending message...");
-        ws.send(JSON.stringify([[auth.user.id, 0, 0]]));
+        ws.send([auth.user.id, 0, 0].join(" "));
       };
       setWebsocket(ws);
     };

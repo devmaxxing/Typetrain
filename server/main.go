@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -88,22 +89,29 @@ func main() {
 	http.HandleFunc(apiEndpoint+"/connect", func(writer http.ResponseWriter, request *http.Request) {
 		socket, err := upgrader.Upgrade(writer, request)
 		if err != nil {
+			log.Printf("Error upgrading connection: %v", err)
 			return
 		}
 		instanceId := request.URL.Query().Get("instanceId")
-		userId := request.URL.Query().Get("userId")
 		socketInstance.Store(socket, instanceId)
 		var groupMap *csmap.CsMap[*gws.Conn, string] = nil
 		if instanceConns.Has(instanceId) {
 			loadedMap, _ := instanceConns.Load(instanceId)
 			groupMap = loadedMap
-			groupMap.Store(socket, userId)
+			builder := strings.Builder{}
+			groupMap.Range(func(_ *gws.Conn, state string) (stop bool) {
+				builder.WriteString(state)
+				builder.WriteString("\n")
+				return false
+			})
+			socket.WriteString(builder.String())
+			groupMap.Store(socket, "")
 		} else {
 			groupMap = csmap.Create[*gws.Conn, string](
 				csmap.WithShardCount[*gws.Conn, string](1),
 			)
 			instanceConns.Store(instanceId, groupMap)
-			groupMap.Store(socket, userId)
+			groupMap.Store(socket, "")
 		}
 		log.Printf("New connection from %s clients: %d", instanceId, groupMap.Count())
 		go func() {
@@ -163,10 +171,12 @@ func (c *Handler) OnMessage(socket *gws.Conn, message *gws.Message) {
 	defer message.Close()
 	instanceId, _ := socketInstance.Load(socket)
 	val, _ := instanceConns.Load(instanceId)
-	var b = gws.NewBroadcaster(message.Opcode, message.Bytes())
+	messageBytes := message.Bytes()
+	val.Store(socket, string(messageBytes))
+	var b = gws.NewBroadcaster(message.Opcode, messageBytes)
 	defer b.Close()
 
-	log.Printf("Broadcasting to %s message: %s clients: %d", instanceId, string(message.Bytes()), val.Count())
+	log.Printf("Broadcasting to %s message: %s clients: %d", instanceId, string(messageBytes), val.Count())
 
 	val.Range(func(key *gws.Conn, _ string) (stop bool) {
 		b.Broadcast(key)

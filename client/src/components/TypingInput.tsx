@@ -2,7 +2,7 @@ import clsx from "clsx";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { BsCursorFill } from "react-icons/bs";
 import { BsFlagFill } from "react-icons/bs";
-import useTyping from "react-typing-game-hook";
+import useTyping, { PhaseType } from "react-typing-game-hook";
 
 // import useLeaderboard from "@/hooks/useLeaderboard";
 // import useProfile from "@/hooks/useProfile";
@@ -83,13 +83,35 @@ const TypingInput = React.forwardRef<HTMLInputElement, TypingInputProps>(
       setIsFocused(true);
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [text]);
+    let commsLoop: number | undefined;
+    useEffect(() => {
+      if (commsLoop) clearInterval(commsLoop);
+      commsLoop = setInterval(() => {
+        if (socket) {
+          if (startTime && phase !== PhaseType.Ended) {
+            socket.send(
+              `${id} ${score} ${
+                (12000 * correctChar) / (Date.now() - startTime)
+              }`
+            );
+          } else {
+            socket.send(`${id} ${score} 0`);
+          }
+        }
+      }, 1000);
+    }, []);
 
     //set WPM
     useEffect(() => {
       if (phase === 2 && endTime && startTime) {
         const dur = Math.floor((endTime - startTime) / 1000);
+        const newScore = baseScore + correctChar;
         setDuration(dur);
-        setBaseScore(baseScore + correctChar);
+        setScore(newScore);
+        if (socket) {
+          socket.send(`${id} ${newScore} ${(12 * correctChar) / dur}`);
+        }
+        setBaseScore(newScore);
         // todo: create leaderboard
         // createLeaderboardData({
         //   name: user?.name || localStorage?.getItem("nickname") || "guest",
@@ -116,6 +138,10 @@ const TypingInput = React.forwardRef<HTMLInputElement, TypingInputProps>(
         deleteTyping(control);
       } else if (letter.length === 1) {
         insertTyping(letter);
+      }
+      if (startTime && phase !== PhaseType.Ended) {
+        console.log(baseScore + correctChar);
+        setScore(baseScore + correctChar);
       }
     };
 
