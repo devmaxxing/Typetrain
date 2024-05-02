@@ -23,7 +23,7 @@ type DiscordOAuthResponse struct {
 }
 
 var socketInstance = csmap.Create[*gws.Conn, string]()
-var instanceConns = csmap.Create[string, *csmap.CsMap[*gws.Conn, bool]]()
+var instanceConns = csmap.Create[string, *csmap.CsMap[*gws.Conn, string]]()
 
 func main() {
 	err := godotenv.Load()
@@ -31,13 +31,14 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 	port := os.Getenv("PORT")
+	apiEndpoint := os.Getenv("API_ENDPOINT")
 	if port == "" {
 		port = "3001" // Default port if not specified
 	}
 	clientID := os.Getenv("VITE_CLIENT_ID")
 	clientSecret := os.Getenv("CLIENT_SECRET")
 
-	http.HandleFunc("/api/token", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc(apiEndpoint+"/token", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "POST" {
 			var t DiscordTokenRequest
 			err := json.NewDecoder(r.Body).Decode(&t)
@@ -74,6 +75,8 @@ func main() {
 			log.Printf("Token response: %v", result)
 
 			json.NewEncoder(w).Encode(result)
+		} else {
+			w.WriteHeader(http.StatusOK)
 		}
 	})
 
@@ -82,28 +85,54 @@ func main() {
 		Recovery:          gws.Recovery,                         // Exception recovery
 		PermessageDeflate: gws.PermessageDeflate{Enabled: true}, // Enable compression
 	})
-	http.HandleFunc("/api/connect", func(writer http.ResponseWriter, request *http.Request) {
+	http.HandleFunc(apiEndpoint+"/connect", func(writer http.ResponseWriter, request *http.Request) {
 		socket, err := upgrader.Upgrade(writer, request)
 		if err != nil {
 			return
 		}
 		instanceId := request.URL.Query().Get("instanceId")
+		userId := request.URL.Query().Get("userId")
 		socketInstance.Store(socket, instanceId)
-		var groupMap *csmap.CsMap[*gws.Conn, bool] = nil
+		var groupMap *csmap.CsMap[*gws.Conn, string] = nil
 		if instanceConns.Has(instanceId) {
-			groupMap, _ := instanceConns.Load(instanceId)
-			groupMap.Store(socket, true)
+			loadedMap, _ := instanceConns.Load(instanceId)
+			groupMap = loadedMap
+			groupMap.Store(socket, userId)
 		} else {
-			groupMap = csmap.Create[*gws.Conn, bool](
-				csmap.WithShardCount[*gws.Conn, bool](1),
+			groupMap = csmap.Create[*gws.Conn, string](
+				csmap.WithShardCount[*gws.Conn, string](1),
 			)
 			instanceConns.Store(instanceId, groupMap)
-			groupMap.Store(socket, true)
+			groupMap.Store(socket, userId)
 		}
 		log.Printf("New connection from %s clients: %d", instanceId, groupMap.Count())
 		go func() {
 			socket.ReadLoop() // Blocking prevents the context from being GC.
 		}()
+	})
+	http.HandleFunc(apiEndpoint+"/translate", func(writer http.ResponseWriter, request *http.Request) {
+		if request.Method == "POST" {
+			req, _ := http.NewRequest("POST", "https://api-free.deepl.com/v2/translate", request.Body)
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", "DeepL-Auth-Key "+os.Getenv("DEEPL_API_KEY"))
+			client := &http.Client{}
+			resp, err := client.Do(req)
+			if err != nil {
+				log.Printf("Error translating text: %v", err)
+				writer.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				log.Printf("Error reading translation response: %v", err)
+				writer.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			defer resp.Body.Close()
+			writer.Header().Set("Content-Type", "application/json")
+			writer.WriteHeader(http.StatusOK)
+			writer.Write(body)
+		}
 	})
 
 	log.Printf("App is listening on port %s!", port)
@@ -139,7 +168,7 @@ func (c *Handler) OnMessage(socket *gws.Conn, message *gws.Message) {
 
 	log.Printf("Broadcasting to %s message: %s clients: %d", instanceId, string(message.Bytes()), val.Count())
 
-	val.Range(func(key *gws.Conn, _ bool) (stop bool) {
+	val.Range(func(key *gws.Conn, _ string) (stop bool) {
 		b.Broadcast(key)
 		return false
 	})

@@ -20,7 +20,7 @@ type TypingInputProps = {
 const TypingInput = React.forwardRef<HTMLInputElement, TypingInputProps>(
   ({ text, id, socket }, ref) => {
     const [duration, setDuration] = useState(() => 0);
-    const [isFocused, setIsFocused] = useState(() => false);
+    const [isFocused, setIsFocused] = useState(() => true);
     const [score, setScore] = useState(() => 0);
     const [baseScore, setBaseScore] = useState(() => 0);
     const letterElements = useRef<HTMLDivElement>(null);
@@ -77,6 +77,10 @@ const TypingInput = React.forwardRef<HTMLInputElement, TypingInputProps>(
       setMargin(0);
       endTyping();
       resetTyping();
+      if (ref != null && typeof ref !== "function") {
+        ref?.current?.focus();
+      }
+      setIsFocused(true);
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [text]);
 
