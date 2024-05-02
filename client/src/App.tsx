@@ -119,7 +119,7 @@ I will be afflicted that I do not know men."
   const [paragraphIndex, setParagraphIndex] = useState<number>(0);
   const [text, setText] = useState<string>(paragraphs[0]);
   const [language, setLanguage] = useState<string>("EN");
-  const audio = new Audio("/KONG_STRUCTURE_94BPM.wav");
+  const audio = new Audio("/KONG_STRUCTURE_94BPM.mp3");
   audio.loop = true;
 
   const supportedLanguages = {
