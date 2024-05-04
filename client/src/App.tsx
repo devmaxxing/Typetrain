@@ -4,6 +4,9 @@ import { discordSdk } from "./discordSdk";
 import type { AsyncReturnType } from "type-fest";
 import TypingInput from "./components/TypingInput";
 import PreferenceProvider from "./context/Preference/PreferenceContext";
+import { AnimatedSprite, Container, Stage } from "@pixi/react";
+import { Spritesheet, Texture } from "pixi.js";
+import TrainCars from "./components/game/TrainCars";
 
 type Auth = AsyncReturnType<typeof discordSdk.commands.authenticate>;
 
@@ -119,6 +122,8 @@ I will be afflicted that I do not know men."
   const [paragraphIndex, setParagraphIndex] = useState<number>(0);
   const [text, setText] = useState<string>(paragraphs[0]);
   const [language, setLanguage] = useState<string>("EN");
+  const [trainFrames, setTrainFrames] = useState<Texture[]>([]);
+  const [instanceUsers, setInstanceUsers] = useState<Record<string, any>[]>([]);
   const audio = new Audio("/KONG_STRUCTURE_94BPM.mp3");
   audio.loop = true;
 
@@ -207,12 +212,20 @@ I will be afflicted that I do not know men."
         access_token,
       });
 
+      discordSdk.subscribe("ACTIVITY_INSTANCE_PARTICIPANTS_UPDATE", (event) => {
+        setInstanceUsers(event.participants);
+      });
+      const participants =
+        await discordSdk.commands.getInstanceConnectedParticipants();
+      setInstanceUsers(participants.participants);
+
       if (auth == null) {
         throw new Error("Authenticate command failed");
       }
       setAuth(auth);
       const instanceId = discordSdk.instanceId;
       setScores({ [auth.user.id]: [0, 0] });
+
       const ws = new WebSocket(
         `wss://${
           import.meta.env.VITE_CLIENT_ID
@@ -232,12 +245,131 @@ I will be afflicted that I do not know men."
         setScores((prev) => ({ ...prev, ...newScores }));
       };
       ws.onopen = () => {
+        setWebsocket(ws);
         ws.send([auth.user.id, 0, 0].join(" "));
       };
-      setWebsocket(ws);
+      ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+      };
     };
 
     setup().then(() => {});
+    const trainSpriteSheet = new Spritesheet(
+      Texture.from("/sprites/train/sheet_train_v18.png"),
+      {
+        frames: {
+          train1: {
+            frame: { x: 0, y: 0, w: 256, h: 64 },
+            sourceSize: { w: 256, h: 64 },
+            spriteSourceSize: { x: 0, y: 0, w: 256, h: 64 },
+          },
+          train2: {
+            frame: { x: 256, y: 0, w: 256, h: 64 },
+            sourceSize: { w: 256, h: 64 },
+            spriteSourceSize: { x: 0, y: 0, w: 256, h: 64 },
+          },
+          train3: {
+            frame: { x: 512, y: 0, w: 256, h: 64 },
+            sourceSize: { w: 256, h: 64 },
+            spriteSourceSize: { x: 0, y: 0, w: 256, h: 64 },
+          },
+          train4: {
+            frame: { x: 768, y: 0, w: 256, h: 64 },
+            sourceSize: { w: 256, h: 64 },
+            spriteSourceSize: { x: 0, y: 0, w: 256, h: 64 },
+          },
+          train5: {
+            frame: { x: 1024, y: 0, w: 256, h: 64 },
+            sourceSize: { w: 256, h: 64 },
+            spriteSourceSize: { x: 0, y: 0, w: 256, h: 64 },
+          },
+          train6: {
+            frame: { x: 1280, y: 0, w: 256, h: 64 },
+            sourceSize: { w: 256, h: 64 },
+            spriteSourceSize: { x: 0, y: 0, w: 256, h: 64 },
+          },
+          train7: {
+            frame: { x: 1536, y: 0, w: 256, h: 64 },
+            sourceSize: { w: 256, h: 64 },
+            spriteSourceSize: { x: 0, y: 0, w: 256, h: 64 },
+          },
+          train8: {
+            frame: { x: 1792, y: 0, w: 256, h: 64 },
+            sourceSize: { w: 256, h: 64 },
+            spriteSourceSize: { x: 0, y: 0, w: 256, h: 64 },
+          },
+          train9: {
+            frame: { x: 2048, y: 0, w: 256, h: 64 },
+            sourceSize: { w: 256, h: 64 },
+            spriteSourceSize: { x: 0, y: 0, w: 256, h: 64 },
+          },
+          train10: {
+            frame: { x: 2304, y: 0, w: 256, h: 64 },
+            sourceSize: { w: 256, h: 64 },
+            spriteSourceSize: { x: 0, y: 0, w: 256, h: 64 },
+          },
+          train11: {
+            frame: { x: 2560, y: 0, w: 256, h: 64 },
+            sourceSize: { w: 256, h: 64 },
+            spriteSourceSize: { x: 0, y: 0, w: 256, h: 64 },
+          },
+          train12: {
+            frame: { x: 2816, y: 0, w: 256, h: 64 },
+            sourceSize: { w: 256, h: 64 },
+            spriteSourceSize: { x: 0, y: 0, w: 256, h: 64 },
+          },
+          train13: {
+            frame: { x: 3072, y: 0, w: 256, h: 64 },
+            sourceSize: { w: 256, h: 64 },
+            spriteSourceSize: { x: 0, y: 0, w: 256, h: 64 },
+          },
+          train14: {
+            frame: { x: 3328, y: 0, w: 256, h: 64 },
+            sourceSize: { w: 256, h: 64 },
+            spriteSourceSize: { x: 0, y: 0, w: 256, h: 64 },
+          },
+          train15: {
+            frame: { x: 3584, y: 0, w: 256, h: 64 },
+            sourceSize: { w: 256, h: 64 },
+            spriteSourceSize: { x: 0, y: 0, w: 256, h: 64 },
+          },
+          train16: {
+            frame: { x: 3840, y: 0, w: 256, h: 64 },
+            sourceSize: { w: 256, h: 64 },
+            spriteSourceSize: { x: 0, y: 0, w: 256, h: 64 },
+          },
+        },
+        meta: {
+          image: "/sprites/train/sheet_train_v18.png",
+          format: "RGBA8888",
+          size: { w: 4096, h: 64 },
+          scale: 1,
+        },
+        animations: {
+          train: [
+            "train1",
+            "train2",
+            "train3",
+            "train4",
+            "train5",
+            "train6",
+            "train7",
+            "train8",
+            "train9",
+            "train10",
+            "train11",
+            "train12",
+            "train13",
+            "train14",
+            "train15",
+            "train16",
+          ],
+        },
+      }
+    );
+    trainSpriteSheet.parse().then(() => {
+      setTrainFrames(trainSpriteSheet.animations.train);
+    });
   }, []);
 
   useEffect(() => {
@@ -273,9 +405,23 @@ I will be afflicted that I do not know men."
   if (!auth) {
     return <div>Loading...</div>; // or some other loading state
   }
+
+  let width = document.body.clientWidth;
+  let height = 256;
+
   return (
     <PreferenceProvider>
       <div className="default poppins sm:scrollbar h-screen w-full overflow-y-auto bg-bg transition-colors duration-300">
+        <Stage width={width} height={height}>
+          <Container position={[width / 2 - 128, height - 72]}>
+            <AnimatedSprite
+              isPlaying={true}
+              textures={trainFrames}
+              animationSpeed={0.24}
+            />
+            <TrainCars scores={scores} x={-256} users={instanceUsers} />
+          </Container>
+        </Stage>
         <div className="layout flex flex-col items-center pt-36 text-center">
           <TypingInput
             id={auth.user.id}
