@@ -415,7 +415,7 @@ I will be afflicted that I do not know men."
     useTick((delta) => {
       setGroundPosition((prev) => {
         return {
-          x: Math.round(prev.x - delta * speedPixelsPerMS) % 32,
+          x: prev.x - delta * speedPixelsPerMS,
           y: 0,
         };
       });
