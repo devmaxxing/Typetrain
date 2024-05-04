@@ -113,7 +113,7 @@ func main() {
 			instanceConns.Store(instanceId, groupMap)
 			groupMap.Store(socket, "")
 		}
-		log.Printf("New connection from %s clients: %d", instanceId, groupMap.Count())
+		log.Printf("New connection to %s clients: %d", instanceId, groupMap.Count())
 		go func() {
 			socket.ReadLoop() // Blocking prevents the context from being GC.
 		}()
@@ -159,8 +159,12 @@ func (c *Handler) OnOpen(socket *gws.Conn) {}
 func (c *Handler) OnClose(socket *gws.Conn, err error) {
 	instanceId, _ := socketInstance.Load(socket)
 	val, _ := instanceConns.Load(instanceId)
-	log.Printf("Connection closed from %s clients: %d", instanceId, val.Count()-1)
+	log.Printf("Connection closed from %s", instanceId)
 	val.Delete(socket)
+	if val.Count() == 0 {
+		instanceConns.Delete(instanceId)
+		log.Printf("No more clients connected to %s", instanceId)
+	}
 }
 
 func (c *Handler) OnPing(socket *gws.Conn, payload []byte) {}
