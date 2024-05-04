@@ -411,11 +411,12 @@ I will be afflicted that I do not know men."
   let height = 256;
   const Ground = () => {
     const [groundPosition, setGroundPosition] = useState({ x: 0, y: 0 });
-    const speedPixelsPerMillisecond = 100 / 1000; // 100 pixels per second
+    const speedPixelsPerSecond = 10; // 10 pixels per second
+    const movementWindow = width * 32;
     useTick((delta) => {
       setGroundPosition((prev) => {
         return {
-          x: (prev.x - delta * speedPixelsPerMillisecond) % width,
+          x: (prev.x - delta * speedPixelsPerSecond) % movementWindow,
           y: 0,
         };
       });
