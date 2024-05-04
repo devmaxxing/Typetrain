@@ -480,6 +480,7 @@ I will be afflicted that I do not know men."
               id="language"
               onChange={(e) => setLanguage(e.target.value)}
               defaultValue="EN"
+              className="bg-transparent"
             >
               {Object.entries(supportedLanguages).map(([key, value]) => (
                 <option key={key} value={key}>
