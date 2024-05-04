@@ -199,11 +199,11 @@ const TrainCars = PixiComponent("TrainCars", {
           }
           const text = new Text(name, {
             fill: 0xffffff,
-            align: "center",
             fontFamily: "Courier New",
           });
           child.addChild(text);
-          text.x = 64;
+          text.x = 32;
+          text.y = 8;
 
           const scoreText = new Text("", {
             fill: 0xffffff,
@@ -211,7 +211,7 @@ const TrainCars = PixiComponent("TrainCars", {
           });
           scoreText.name = scoreTextName;
           child.addChild(scoreText);
-          scoreText.x = 64;
+          scoreText.x = 32;
           scoreText.y = -32;
 
           const wpmText = new Text("", {
@@ -220,7 +220,7 @@ const TrainCars = PixiComponent("TrainCars", {
           });
           wpmText.name = wpmTextName;
           child.addChild(wpmText);
-          wpmText.x = 64;
+          wpmText.x = 32;
           wpmText.y = -64;
 
           child.name = newScores[i][0];
