@@ -407,11 +407,13 @@ I will be afflicted that I do not know men."
     }
   }, [paragraphIndex, language]);
 
+  let width = document.body.clientWidth;
+  let height = 256;
   const Ground = () => {
     const [groundPosition, setGroundPosition] = useState({ x: 0, y: 0 });
     useTick((delta) => {
       setGroundPosition((prev) => {
-        return { x: (prev.x - 1) % 32, y: 0 };
+        return { x: (prev.x - 1) % (32 * width), y: 0 };
       });
     });
     return (
@@ -430,9 +432,6 @@ I will be afflicted that I do not know men."
   if (!auth) {
     return <div>Loading...</div>; // or some other loading state
   }
-
-  let width = document.body.clientWidth;
-  let height = 256;
 
   return (
     <PreferenceProvider>
