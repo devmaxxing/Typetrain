@@ -127,13 +127,19 @@ const TrainCars = PixiComponent("TrainCars", {
     const container = new Container();
     container.x = props.x || 0;
 
-    const totalSpeedText = new Text("0 wpm", { fill: 0xffffff });
+    const totalSpeedText = new Text("0 wpm", {
+      fill: 0xffffff,
+      fontFamily: "Courier New",
+    });
     totalSpeedText.name = "totalSpeed";
     container.addChild(totalSpeedText);
     totalSpeedText.x = 400;
     totalSpeedText.y = -64;
 
-    const totalTraveledText = new Text("0 km", { fill: 0xffffff });
+    const totalTraveledText = new Text("0 km", {
+      fill: 0xffffff,
+      fontFamily: "Courier New",
+    });
     totalTraveledText.name = "totalTraveled";
     container.addChild(totalTraveledText);
     totalTraveledText.x = 400;
@@ -191,17 +197,29 @@ const TrainCars = PixiComponent("TrainCars", {
           if (user) {
             name = user["username"];
           }
-          const text = new Text(name, { fill: 0xffffff, align: "center" });
+          const text = new Text(name, {
+            fill: 0xffffff,
+            align: "center",
+            fontFamily: "Courier New",
+          });
           child.addChild(text);
           text.x = 64;
           text.y = -32;
 
-          const scoreText = new Text("", { fill: 0xffffff, align: "right" });
+          const scoreText = new Text("", {
+            fill: 0xffffff,
+            align: "right",
+            fontFamily: "Courier New",
+          });
           scoreText.name = scoreTextName;
           child.addChild(scoreText);
           scoreText.x = 70;
 
-          const wpmText = new Text("", { fill: 0xffffff, align: "left" });
+          const wpmText = new Text("", {
+            fill: 0xffffff,
+            align: "left",
+            fontFamily: "Courier New",
+          });
           wpmText.name = wpmTextName;
           child.addChild(wpmText);
           wpmText.x = 130;
