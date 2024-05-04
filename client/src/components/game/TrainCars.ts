@@ -204,25 +204,24 @@ const TrainCars = PixiComponent("TrainCars", {
           });
           child.addChild(text);
           text.x = 64;
-          text.y = -32;
 
           const scoreText = new Text("", {
             fill: 0xffffff,
-            align: "right",
             fontFamily: "Courier New",
           });
           scoreText.name = scoreTextName;
           child.addChild(scoreText);
-          scoreText.x = 70;
+          scoreText.x = 64;
+          scoreText.y = -32;
 
           const wpmText = new Text("", {
             fill: 0xffffff,
-            align: "left",
             fontFamily: "Courier New",
           });
           wpmText.name = wpmTextName;
           child.addChild(wpmText);
-          wpmText.x = 130;
+          wpmText.x = 64;
+          wpmText.y = -64;
 
           child.name = newScores[i][0];
           instance.addChild(child);
