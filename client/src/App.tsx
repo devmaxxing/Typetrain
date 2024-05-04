@@ -4,7 +4,13 @@ import { discordSdk } from "./discordSdk";
 import type { AsyncReturnType } from "type-fest";
 import TypingInput from "./components/TypingInput";
 import PreferenceProvider from "./context/Preference/PreferenceContext";
-import { AnimatedSprite, Container, Stage } from "@pixi/react";
+import {
+  AnimatedSprite,
+  Container,
+  Stage,
+  TilingSprite,
+  useTick,
+} from "@pixi/react";
 import { Spritesheet, Texture } from "pixi.js";
 import TrainCars from "./components/game/TrainCars";
 
@@ -401,6 +407,25 @@ I will be afflicted that I do not know men."
     }
   }, [paragraphIndex, language]);
 
+  const Ground = () => {
+    const [groundPosition, setGroundPosition] = useState({ x: 0, y: 0 });
+    useTick((delta) => {
+      setGroundPosition((prev) => {
+        return { x: (prev.x - 1) % 32, y: 0 };
+      });
+    });
+    return (
+      <TilingSprite
+        name="ground"
+        image="/sprites/train/railtrack_v1.png"
+        width={width}
+        height={8}
+        tilePosition={groundPosition}
+        y={height - 8}
+      />
+    );
+  };
+
   const inputRef = React.useRef() as React.MutableRefObject<HTMLInputElement>;
   if (!auth) {
     return <div>Loading...</div>; // or some other loading state
@@ -421,6 +446,7 @@ I will be afflicted that I do not know men."
             />
             <TrainCars scores={scores} x={-256} users={instanceUsers} />
           </Container>
+          <Ground />
         </Stage>
         <div className="layout flex flex-col items-center pt-36 text-center">
           <TypingInput

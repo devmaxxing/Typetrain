@@ -193,7 +193,7 @@ const TrainCars = PixiComponent("TrainCars", {
           }
           const text = new Text(name, { fill: 0xffffff, align: "center" });
           child.addChild(text);
-          text.x = 128;
+          text.x = 64;
           text.y = -32;
 
           const scoreText = new Text("", { fill: 0xffffff, align: "right" });
