@@ -136,7 +136,7 @@ const TrainCars = PixiComponent("TrainCars", {
     totalSpeedText.x = 400;
     totalSpeedText.y = -64;
 
-    const totalTraveledText = new Text("0 km", {
+    const totalTraveledText = new Text("0", {
       fill: 0xffffff,
       fontFamily: "Courier New",
     });
@@ -240,7 +240,7 @@ const TrainCars = PixiComponent("TrainCars", {
       const totalTraveledText = instance.getChildByName(
         "totalTraveled"
       ) as Text;
-      totalTraveledText.text = totalTraveled + " km";
+      totalTraveledText.text = totalTraveled.toString();
     }
   },
   config: {
