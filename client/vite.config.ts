@@ -3,7 +3,7 @@ import { defineConfig } from "vite";
 // https://vitejs.dev/config/
 export default defineConfig({
   server: {
-    //https: true,
+    https: true,
     proxy: {
       "/api": {
         target: "http://localhost:3001",
